@@ -5,42 +5,59 @@ import functools as _ft
 
 def generate(n):
     """
-    Generate all n-ominoes.
+    Generate the fixed n-ominoes.
     """
+    # There are no 'nilominoes', thus, empty set
     if n == 0:
         return set()
+    # The one monomino
     minos = {Polyomino([(0,0)])}
+    # Iteratively add the children of the members of the set before it
     for i in range(n-1):
-        minos_new = set()
-        for mino in minos:
-            minos_new.update(mino.children())
-        minos = minos_new
+        minos = childset(minos)
     return minos
+
+def childset(minos):
+    """Return the set of children of the collection of polyominoes."""
+    children = set()
+    for mino in minos:
+        children.update(mino.children())
+    return children
 
 def one_sided(minos, sort=True):
     """Remove rotations in set of minos."""
-    vis = set()
+    vis = set() # visited mino rotation families
     result = set()
     for mino in minos:
+        # If we haven't seen a rotation of this mino before,
+        # add its rotations to the visisted list
         if mino not in vis:
-            vis.update(mino.rotations())
-            result.add(max(mino.rotations(), key=mino_key) if sort else mino)
+            mino_rots = mino.rotations()
+            vis.update(mino_rots)
+            # Add the (maximal rotation of the) mino
+            result.add(max(mino_rots, key=mino_key) if sort else mino)
     return result
 
 def free(minos, sort=True):
     """Remove rotations and reflections in the set of minos."""
-    vis = set()
+    vis = set() # visited transformation families
     result = set()
     for mino in minos:
+        # If we haven't seen a rotation or reflection of this mino before,
+        # add its transforms to the visisted list
         if mino not in vis:
-            vis.update(mino.transforms())
-            result.add(max(mino.transforms(), key=mino_key) if sort else mino)
+            mino_trans = mino.transforms()
+            vis.update(mino_trans)
+            # Add the (maximal transform of the) mino
+            result.add(max(mino_trans, key=mino_key) if sort else mino)
     return result
 
-# Internalize!
+## TODO: Figure out how to have the same effect WITHIN the class
+## using __eq__, __gt__, __lt__, etc
 def mino_key(m):
-    h, w = m.shape()
-    
+    """Generate a standard key for a polyomino"""
+    #Sort the mino by order, then shape, then 'closeness to top'
+    h, w = m.shape
     return (len(m), h/w, sum(2**(i+j*w) for i, j in m))
 
 def _neighbors(point):
@@ -57,13 +74,16 @@ class Polyomino(frozenset):
     """
     def grid(self):
         """Return boolean-grid representation of this polyomino."""
-        h, w = self.shape()
+        # Create a blank grid in the shape of the mino
+        h, w = self.shape
         grid = [[False]*w for row in range(h)]
+        # Fill the grid with the values in the mino
         for i, j in self:
             grid[i][j] = True
         return grid
 
     def __hash__(self):
+        # Just inherit superclass's hashing
         return super().__hash__()
     
     def __str__(self, cell="[]", empty="  "):
@@ -81,12 +101,22 @@ class Polyomino(frozenset):
         Equality to another mino.
         """
         return super().__eq__(other)
-        
+
+    # [properties]
+    # TODO: Make O(1), pre-storage?
+    @property
     def shape(self):
         """Width and height of a normalized mino"""
         rows, cols = zip(*self)
         return max(rows)+1, max(cols)+1
+    @property
+    def width(self):
+        return self.shape[1]
+    @property
+    def height(self):
+        return self.shape[0]
 
+    # [transformations]
     def normalize(self):
         """
         Return a polyomino in normal form (min x,y is zero)
@@ -98,7 +128,7 @@ class Polyomino(frozenset):
     def translate(self, numrows, numcols):
         """Translate by numrows and numcols"""
         return Polyomino((i+numrows, j+numcols) for i, j in self)
-
+    
     def rotate_left(self):
         """Rotate counterclockwise"""
         return Polyomino((-j, i) for i, j in self).normalize()
@@ -121,12 +151,13 @@ class Polyomino(frozenset):
 
     def reflect_diag(self):
         """Reflection across line i==j"""
-        return Polyomino((j, i) for i, j in self).normalize()
+        return Polyomino((j, i) for i, j in self)
 
     def reflect_skew(self):
         """Reflection across line i==-j"""
         return Polyomino((-j, -i) for i, j in self).normalize()
 
+    # [Congruent polyominoes]
     def rotations(self):
         """Return rotations of this mino."""
         return [self,
@@ -184,11 +215,18 @@ class Polyomino(frozenset):
         Returns all polyominoes obtained by adding a square to this one.
         """
         childset = set()
-        for nbr in set.union(*(_neighbors(square) for square in self)):
-            if nbr not in self:
-                new = Polyomino(self | {nbr})
-                # Only normalize if we need to
-                if -1 in nbr:
-                    new = new.normalize()
-                childset.add(new)
+        # Get all the neighbors of all the cells
+        nbrs = set()
+        for square in self:
+            nbrs.update(_neighbors(square))
+        nbrs -= self
+        # Add each neighbor
+        for nbr in nbrs:
+            new = Polyomino(self | {nbr})
+            # Only normalize if we need to
+            if nbr[0] == -1:
+                new = new.translate(1, 0)
+            elif nbr[1] == -1:
+                new = new.translate(0, 1)
+            childset.add(new)
         return childset

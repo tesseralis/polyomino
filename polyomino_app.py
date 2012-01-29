@@ -35,9 +35,9 @@ class PolyominoApp(Frame):
         textframe.pack()
         Label(textframe, text="Size: ").pack(side=LEFT)
 
-        self.entry_size = Entry(textframe)
-        self.entry_size.insert(INSERT, "5")
-        self.entry_size.pack(side=LEFT)
+        self.scale_size = Scale(textframe, from_=0, to=11, orient=HORIZONTAL)
+        self.scale_size.pack(side=LEFT)
+        
 
         # Make the symmetry-choice buttons
         symframe = Frame(main)
@@ -80,12 +80,12 @@ class PolyominoApp(Frame):
         # clear the canvas
         self.canvas.delete(ALL)
 
-        try:
-            n = int(self.entry_size.get())
-        except ValueError:
-            self.canvas.create_text(100, 100,
-                                    text="Must input number", fill="red")
-            return
+##        try:
+        n = int(self.scale_size.get())
+##        except ValueError:
+##            self.canvas.create_text(100, 100,
+##                                    text="Must input number", fill="red")
+##            return
         sym = self.sym_value.get()
         symcolor = self.symcolor_value.get()
         

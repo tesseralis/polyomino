@@ -1,5 +1,6 @@
 import polyomino as mino
 import unittest
+import cProfile
 
 class TestPolyomino(unittest.TestCase):
     def setUp(self):
@@ -41,9 +42,13 @@ class TestPolyomino(unittest.TestCase):
                          msg="transforms() doesn't work.")
 
     def test_shape(self):
-        expected = (2, 3)
-        self.assertEqual(expected, self.test_mino.shape(),
+        h_exp, w_exp = expected = (2, 3)
+        self.assertEqual(expected, self.test_mino.shape,
                          msg="Wrong shape")
+        self.assertEqual(h_exp, self.test_mino.height,
+                         msg="Wrong height")
+        self.assertEqual(w_exp, self.test_mino.width,
+                         msg="Wrong width")
 
     def test_grid(self):
         expected = [[True, True, True],[True, False, False]]
