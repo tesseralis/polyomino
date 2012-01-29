@@ -1,0 +1,9 @@
+[][][][]  [][][]  [][][]  [][]    [][]
+          []        []      [][]  [][]
+
+Python module and GUI for handling polyominoes, aka Tetris/Blokus pieces.
+
+Just get the classes and run the GUI (runs on Python 3.2).
+
+Right now it can generate polyominoes: specify the number of squares, the symmetry,
+and whether you want symmetries highlighted.
