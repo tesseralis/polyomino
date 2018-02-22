@@ -123,5 +123,6 @@ class PolyominoApp(Frame):
             
 
 root = Tk()
+root.wm_title("Polyomino App")
 app = PolyominoApp(root)
 root.mainloop()
